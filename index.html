@@ -973,6 +973,254 @@
             color: var(--nord8);
         }
 
+        /* Proposed Interface Section */
+        .interface-mockup {
+            background: var(--nord0);
+            border: 1px solid var(--nord3);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .browser-bar {
+            background: var(--nord1);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid var(--nord2);
+        }
+
+        .browser-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .browser-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .browser-dot.red { background: var(--nord11); }
+        .browser-dot.yellow { background: var(--nord13); }
+        .browser-dot.green { background: var(--nord14); }
+
+        .browser-url {
+            flex: 1;
+            background: var(--nord0);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--nord4);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .browser-url::before {
+            content: '🔒';
+            font-size: 0.6rem;
+        }
+
+        .browser-content {
+            padding: 2rem;
+            min-height: 500px;
+            position: relative;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(136, 192, 208, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(180, 142, 173, 0.03) 0%, transparent 50%),
+                var(--nord0);
+        }
+
+        .flow-canvas {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        .flow-connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .flow-path {
+            fill: none;
+            stroke: var(--nord8);
+            stroke-width: 2;
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to {
+                stroke-dashoffset: -12;
+            }
+        }
+
+        .flow-panel {
+            position: absolute;
+            background: var(--nord1);
+            border: 1px solid var(--nord3);
+            border-radius: 6px;
+            min-width: 180px;
+            z-index: 2;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .flow-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            border-color: var(--nord8);
+        }
+
+        .flow-panel-header {
+            background: var(--nord2);
+            padding: 0.5rem 0.75rem;
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--nord3);
+        }
+
+        .flow-panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            color: var(--nord8);
+            text-transform: uppercase;
+        }
+
+        .flow-panel-status {
+            width: 8px;
+            height: 8px;
+            background: var(--nord14);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .flow-panel-body {
+            padding: 0.75rem;
+        }
+
+        .flow-opcode {
+            background: var(--nord0);
+            border: 1px solid var(--nord2);
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--nord4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flow-opcode:last-child {
+            margin-bottom: 0;
+        }
+
+        .flow-opcode.highlight {
+            border-color: var(--nord8);
+            background: rgba(136, 192, 208, 0.1);
+        }
+
+        .flow-opcode-icon {
+            width: 6px;
+            height: 6px;
+            background: var(--nord3);
+            border-radius: 50%;
+        }
+
+        .flow-opcode.highlight .flow-opcode-icon {
+            background: var(--nord8);
+        }
+
+        .flow-connector-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--nord8);
+            border: 2px solid var(--nord0);
+            border-radius: 50%;
+            z-index: 3;
+        }
+
+        .flow-panel-1 { left: 5%; top: 20px; }
+        .flow-panel-2 { left: 38%; top: 100px; }
+        .flow-panel-3 { left: 70%; top: 180px; }
+
+        .ai-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--nord1);
+            border-top: 1px solid var(--nord3);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ai-input {
+            flex: 1;
+            background: var(--nord0);
+            border: 1px solid var(--nord2);
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--nord3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .ai-input::placeholder {
+            color: var(--nord3);
+        }
+
+        .ai-button {
+            background: var(--nord10);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            color: var(--nord6);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ai-button:hover {
+            background: var(--nord9);
+            box-shadow: 0 0 20px rgba(129, 161, 193, 0.4);
+        }
+
+        .ai-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--nord15);
+            letter-spacing: 0.1em;
+        }
+
+        .ai-label::before {
+            content: '✦';
+        }
+
         /* Demo Section */
         .demo-section {
             display: grid;
@@ -1180,6 +1428,7 @@
             <a href="#capabilities">Capabilities</a>
             <a href="#architecture">Architecture</a>
             <a href="#opcodes">Opcodes</a>
+            <a href="#interface">Interface</a>
             <a href="#demo">Demo</a>
         </div>
     </nav>
@@ -1590,9 +1839,112 @@
         </div>
     </section>
 
-    <section id="demo">
+    <section id="interface">
         <div class="section-header">
             <span class="section-number">05</span>
+            <span class="section-title">Proposed Interface</span>
+            <div class="section-line"></div>
+        </div>
+
+        <div class="interface-mockup fade-in">
+            <div class="browser-bar">
+                <div class="browser-dots">
+                    <div class="browser-dot red"></div>
+                    <div class="browser-dot yellow"></div>
+                    <div class="browser-dot green"></div>
+                </div>
+                <div class="browser-url">app.aceresponder.com/playbook-editor</div>
+            </div>
+            <div class="browser-content">
+                <div class="flow-canvas">
+                    <!-- SVG Connections -->
+                    <svg class="flow-connections" viewBox="0 0 800 400" preserveAspectRatio="none">
+                        <!-- Panel 1 bottom to Panel 2 top -->
+                        <path class="flow-path" d="M 130 155 C 130 180, 394 80, 394 105" />
+                        <!-- Panel 2 bottom to Panel 3 top -->
+                        <path class="flow-path" d="M 394 205 C 394 230, 650 160, 650 185" />
+                    </svg>
+
+                    <!-- Task Set 0 -->
+                    <div class="flow-panel flow-panel-1">
+                        <div class="flow-panel-header">
+                            <span class="flow-panel-title">task_set 0</span>
+                            <div class="flow-panel-status"></div>
+                        </div>
+                        <div class="flow-panel-body">
+                            <div class="flow-opcode">
+                                <span class="flow-opcode-icon"></span>
+                                enable_privilege
+                            </div>
+                            <div class="flow-opcode">
+                                <span class="flow-opcode-icon"></span>
+                                sleep
+                            </div>
+                            <div class="flow-opcode highlight">
+                                <span class="flow-opcode-icon"></span>
+                                migrate → task 1
+                            </div>
+                        </div>
+                        <div class="flow-connector-dot" style="bottom: -5px; left: 50%; transform: translateX(-50%);"></div>
+                    </div>
+
+                    <!-- Task Set 1 -->
+                    <div class="flow-panel flow-panel-2">
+                        <div class="flow-connector-dot" style="top: -5px; left: 50%; transform: translateX(-50%);"></div>
+                        <div class="flow-panel-header">
+                            <span class="flow-panel-title">task_set 1</span>
+                            <div class="flow-panel-status"></div>
+                        </div>
+                        <div class="flow-panel-body">
+                            <div class="flow-opcode">
+                                <span class="flow-opcode-icon"></span>
+                                make_token
+                            </div>
+                            <div class="flow-opcode highlight">
+                                <span class="flow-opcode-icon"></span>
+                                wmi_exec → task 2
+                            </div>
+                        </div>
+                        <div class="flow-connector-dot" style="bottom: -5px; left: 50%; transform: translateX(-50%);"></div>
+                    </div>
+
+                    <!-- Task Set 2 -->
+                    <div class="flow-panel flow-panel-3">
+                        <div class="flow-connector-dot" style="top: -5px; left: 50%; transform: translateX(-50%);"></div>
+                        <div class="flow-panel-header">
+                            <span class="flow-panel-title">task_set 2</span>
+                            <div class="flow-panel-status"></div>
+                        </div>
+                        <div class="flow-panel-body">
+                            <div class="flow-opcode">
+                                <span class="flow-opcode-icon"></span>
+                                read_file
+                            </div>
+                            <div class="flow-opcode">
+                                <span class="flow-opcode-icon"></span>
+                                http_send
+                            </div>
+                            <div class="flow-opcode">
+                                <span class="flow-opcode-icon"></span>
+                                pyexec
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Panel -->
+                <div class="ai-panel">
+                    <span class="ai-label">AI Assistant</span>
+                    <div class="ai-input">Create a lateral movement chain using WMI to spread to 10.0.0.5...</div>
+                    <button class="ai-button">Generate</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo">
+        <div class="section-header">
+            <span class="section-number">06</span>
             <span class="section-title">Demo</span>
             <div class="section-line"></div>
         </div>
